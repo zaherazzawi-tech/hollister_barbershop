@@ -19,6 +19,7 @@ body {
   color: var(--white);
   font-family: var(--body);
   line-height: 1.5;
+  isolation: isolate;
 }
 img { max-width: 100%; display: block; }
 a { color: var(--white); }
@@ -26,18 +27,31 @@ a:hover { color: #cfcfcf; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--white); outline-offset: 4px; }
 
 /* ---------- Hero / page header ---------- */
+/* The photo runs past the hero, behind the info strip, and fades to black in the barbers section. */
 .hero {
   position: relative;
-  background: url("images/background.webp") center 60% / cover no-repeat;
+  --blend: 860px;     /* how far the photo reaches below the hero */
+  --black-gap: 0.38;  /* share of --blend that is already solid black (the photo ends there on mobile) */
 }
+@media (min-width: 840px) { .hero { --blend: 600px; --black-gap: 0; } }
 .hero::before {
   content: "";
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.62);
+  inset: 0 0 auto;
+  z-index: -1;
+  height: calc(100% + var(--blend));
+  background:
+    linear-gradient(
+      rgba(10, 10, 10, 0.62) 0,
+      rgba(10, 10, 10, 0.62) calc(100% - var(--blend)),
+      rgba(10, 10, 10, 0.82) calc(100% - var(--blend) * 0.6),
+      var(--black) calc(100% - var(--blend) * var(--black-gap))
+    ),
+    url("images/background.webp") center top / auto calc(100% - var(--blend) * var(--black-gap)) no-repeat;
 }
-.hero--page { background-position: center 30%; }
-.hero--page::before { background: rgba(0, 0, 0, 0.72); }
+@media (min-width: 840px) {
+  .hero::before { background-position: center 40%; background-size: cover; }
+}
 .hero > * { position: relative; }
 
 .site-header {
@@ -133,16 +147,14 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--white); outline
 .info {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1px;
-  background: var(--line);
-  border-bottom: 1px solid var(--line);
+  overflow: hidden; /* clips the outer edges of the divider lines below */
 }
 .info-block {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: clamp(28px, 4vw, 44px) clamp(20px, 4vw, 56px);
-  background: var(--black);
+  box-shadow: -1px -1px 0 rgba(255, 255, 255, 0.12); /* top and left dividers that work at any column count */
 }
 .info-block h2 {
   margin: 0;
